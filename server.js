@@ -4,16 +4,17 @@ const cors = require("cors");
 const { Pool } = require("pg");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 // Koneksi ke PostgreSQL
 const pool = new Pool({
-  user: "postgres",
-  host: "localhost",
-  database: "todo_db",
-  password: "postgres",
-  port: 5432,
-});
+    user: "postgres",
+    host: "localhost",
+    database: "todo_db",
+    password: "postgres",
+    port: 5432,
+  });
+  
 
 // Middleware
 app.use(cors());
@@ -73,3 +74,5 @@ app.delete("/todos/:id", async (req, res) => {
 
 // Jalankan server
 app.listen(PORT, () => console.log(`Server berjalan di http://localhost:${PORT}`));
+
+
