@@ -6,21 +6,23 @@ const { Pool } = require("pg");
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// Koneksi ke PostgreSQL
+// Koneksi ke PostgreSQL dengan konfigurasi Railway
 const pool = new Pool({
-    user: "postgres",
-    host: "localhost",
-    database: "todo_db",
-    password: "postgres",
-    port: 5432,
-  });
-  
+  user: process.env.USER,
+  host: process.env.HOST,
+  database: process.env.DATABASE,
+  password: process.env.PASSWORD,
+  port: process.env.PORT,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// ✅ Route: Mendapatkan semua todo
+// Route: Mendapatkan semua todo
 app.get("/todos", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM todos ORDER BY id ASC");
@@ -30,7 +32,7 @@ app.get("/todos", async (req, res) => {
   }
 });
 
-// ✅ Route: Menambahkan todo baru
+// Route: Menambahkan todo baru
 app.post("/todos", async (req, res) => {
   try {
     const { title, priority } = req.body;
@@ -44,28 +46,28 @@ app.post("/todos", async (req, res) => {
   }
 });
 
-// ✅ Route: Mengupdate status & title todo
+// Route: Mengupdate status & title todo
 app.put("/todos/:id", async (req, res, next) => {
-    try {
-      const { id } = req.params;
-      const { title, priority } = req.body;
-  
-      const result = await pool.query(
-        "UPDATE todos SET title = $1, priority = $2 WHERE id = $3 RETURNING *",
-        [title, priority, id]
-      );
-  
-      if (result.rowCount === 0) {
-        return res.status(404).json({ error: "Todo tidak ditemukan" });
-      }
-  
-      res.json(result.rows[0]);
-    } catch (err) {
-      next(err);
+  try {
+    const { id } = req.params;
+    const { title, priority } = req.body;
+    
+    const result = await pool.query(
+      "UPDATE todos SET title = $1, priority = $2 WHERE id = $3 RETURNING *",
+      [title, priority, id]
+    );
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Todo tidak ditemukan" });
     }
-  });
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    next(err);
+  }
+});
 
-// ✅ Route: Menghapus todo
+// Route: Menghapus todo
 app.delete("/todos/:id", async (req, res) => {
   const { id } = req.params;
   await pool.query("DELETE FROM todos WHERE id = $1", [id]);
@@ -74,5 +76,3 @@ app.delete("/todos/:id", async (req, res) => {
 
 // Jalankan server
 app.listen(PORT, () => console.log(`Server berjalan di http://localhost:${PORT}`));
-
-
